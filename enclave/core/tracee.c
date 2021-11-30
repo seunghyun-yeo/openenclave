@@ -1,7 +1,6 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
-#include "tracee.h"
 #include <openenclave/bits/sgx/sgxtypes.h>
 #include <openenclave/bits/types.h>
 #include <openenclave/corelibc/stdarg.h>
@@ -13,12 +12,21 @@
 #include <openenclave/internal/raise.h>
 #include <openenclave/internal/safecrt.h>
 #include <openenclave/internal/safemath.h>
+#include <openenclave/internal/thread.h>
 #include <openenclave/internal/trace.h>
 #include <openenclave/internal/utils.h>
-#include "core_t.h"
+#include <openenclave/tracee.h>
 
-static oe_log_level_t _active_log_level = OE_LOG_LEVEL_ERROR;
+#include "core_t.h"
+#include "tracee.h"
+
+static oe_log_level_t _active_log_level = OE_LOG_LEVEL_MAX;
 static char _enclave_filename[OE_MAX_FILENAME_LEN];
+
+const char* const oe_log_level_strings[OE_LOG_LEVEL_MAX] =
+    {"NONE", "FATAL", "ERROR", "WARN", "INFO", "VERBOSE"};
+
+static oe_mutex_t _log_lock = OE_MUTEX_INITIALIZER;
 
 const char* get_filename_from_path(const char* path)
 {
@@ -69,6 +77,68 @@ void oe_log_init_ecall(const char* enclave_path, uint32_t log_level)
     }
 }
 
+void* oe_enclave_log_context = NULL;
+oe_enclave_log_callback_t oe_enclave_log_callback = NULL;
+
+oe_result_t oe_enclave_log_set_callback(
+    void* context,
+    oe_enclave_log_callback_t callback)
+{
+    if (oe_mutex_lock(&_log_lock) == OE_OK)
+    {
+        oe_enclave_log_context = context;
+        oe_enclave_log_callback = callback;
+        oe_mutex_unlock(&_log_lock);
+        OE_TRACE_INFO("enclave logging callback is set");
+
+        return OE_OK;
+    }
+
+    return OE_UNEXPECTED;
+}
+
+oe_result_t oe_log_enclave_message(oe_log_level_t level, const char* message)
+{
+    oe_result_t result = OE_FAILURE;
+
+    // Take the log file lock.
+    if (oe_mutex_lock(&_log_lock) == OE_OK)
+    {
+        if (oe_enclave_log_callback)
+        {
+            (oe_enclave_log_callback)(
+                oe_enclave_log_context,
+                level,
+                (uint64_t)oe_thread_self(),
+                message);
+        }
+        else
+        {
+            // Skip logging for non-debug-allowed enclaves
+            if (!is_enclave_debug_allowed())
+            {
+                result = OE_OK;
+                goto done;
+            }
+            // Check if this message should be skipped
+            if (level > _active_log_level)
+            {
+                result = OE_OK;
+                goto done;
+            }
+
+            if (oe_log_ocall(level, message) != OE_OK)
+                goto done;
+        }
+        result = OE_OK;
+
+    done:
+        // Release the log lock.
+        oe_mutex_unlock(&_log_lock);
+    }
+    return result;
+}
+
 oe_result_t oe_log(oe_log_level_t level, const char* fmt, ...)
 {
     oe_result_t result = OE_FAILURE;
@@ -76,20 +146,6 @@ oe_result_t oe_log(oe_log_level_t level, const char* fmt, ...)
     int n = 0;
     int bytes_written = 0;
     char* message = NULL;
-
-    // Skip logging for non-debug-allowed enclaves
-    if (!is_enclave_debug_allowed())
-    {
-        result = OE_OK;
-        goto done;
-    }
-
-    // Check if this message should be skipped
-    if (level > _active_log_level)
-    {
-        result = OE_OK;
-        goto done;
-    }
 
     // Validate input
     if (!fmt)
@@ -118,10 +174,7 @@ oe_result_t oe_log(oe_log_level_t level, const char* fmt, ...)
     if (n < 0)
         goto done;
 
-    if (oe_log_ocall(level, message) != OE_OK)
-        goto done;
-
-    result = OE_OK;
+    result = oe_log_enclave_message(level, message);
 
 done:
 
