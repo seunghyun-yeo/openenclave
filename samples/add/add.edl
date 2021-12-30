@@ -1,0 +1,17 @@
+enclave {
+    from "openenclave/edl/syscall.edl" import *;
+    from "platform.edl" import *;
+
+    trusted {
+        public void enclave_add([in, size = 4] int* a,
+                                [in, size = 4] int* b,
+                                [out] int* result);
+        public void enclave_add2(int a,
+                                int b,
+                                int* result);
+        public void migrate([out] char** stack, size_t* sz);
+    };
+    untrusted {
+        void host_add();
+    };
+};
