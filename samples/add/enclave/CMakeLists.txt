@@ -2,7 +2,7 @@ add_custom_command(
     OUTPUT add_t.h add_t.c add_args.h
     DEPENDS ${CMAKE_SOURCE_DIR}/add.edl
     COMMAND
-        openenclave::oeedger8r --trusted ${CMAKE_SOURCE_DIR}/add.edl
+        openenclave::oeedger8r --trusted --migratable ${CMAKE_SOURCE_DIR}/add.edl
         --search-path ${OE_INCLUDEDIR} --search-path 
         ${OE_INCLUDEDIR}/openenclave/edl/sgx)
 
