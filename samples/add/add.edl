@@ -9,7 +9,8 @@ enclave {
         public void enclave_add2(int a,
                                 int b,
                                 int* result);
-        public void migrate([out] char** stack, size_t* sz);
+        public void dump([out] char** stack, size_t* sz);
+        public void restore(uint8_t** stack, size_t sz);
     };
     untrusted {
         void host_add();

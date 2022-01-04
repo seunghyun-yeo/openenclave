@@ -58,10 +58,11 @@ int main(int argc, const char* argv[])
     fprintf(stdout,"result is : %d\n",result_u);
     char* stack;
     size_t sz=0;
-    //memset(stack,0,8);
-    //print_stack(stack,8);
-    result=migrate(enclave,&stack,&sz);
-    if(sz!=0) print_stack(stack,sz);
+    result=dump(enclave,&stack,&sz);
+    
+    // if(sz!=0) print_stack(stack,sz);
+    
+    result=restore(enclave,&stack,sz);
     if (result != OE_OK)
     {
         fprintf(
