@@ -20,7 +20,7 @@ void enclave_add(int* a, int* b, int* result_u){
     *result_u=*a+*b;
     fprintf(stdout, "This is add function for toy\n");
 
-    // oe_result_t result = host_add();
+    // oe_result_t result = host_add();ca
 }
 void enclave_add2(int a, int b, int* result_u){
 
@@ -29,15 +29,12 @@ void enclave_add2(int a, int b, int* result_u){
 void dump(char** result_u, size_t* sz){
     __asm__ volatile(
         "mov %%rbp, %0\n"
-        "nop\n"
-        "nop\n"
         :"=r" (rsp)
     );
-    uint64_t stack_base= 0x1234567890UL;
     *sz=get_stack_base()-rsp;
     *result_u=oe_host_malloc(*sz);
     memcpy(*result_u,(void*) rsp,*sz);
-    fprintf(stdout,"stack_base : %016p\nrsp : %016p\nsz : %016p\n",get_stack_base(),rsp,*sz);
+    // fprintf(stdout,"stack_base : %016p\nrsp : %016p\nsz : %016p\n",rbp,rsp,*sz);
 }
 
 void print_stack(uint8_t *stack, size_t sz){
@@ -46,33 +43,25 @@ void print_stack(uint8_t *stack, size_t sz){
             fprintf(stdout, "%02x", (uint8_t)stack[i*8+j]);
         fprintf(stdout, "\n");
     }
-    fprintf(stdout, "\n");
+    // fprintf(stdout, "\n");
 }
 
 
-void restore(uint8_t** in, size_t in_sz){
+void restore(char* in, size_t in_sz){
+    
     // uint64_t stack_base = get_stack_base();
-    // rsp = stack_base - in_sz;
-    // fprintf(stdout,"stack_base : %016p\nrsp : %016p\nsz : %016p\n",get_stack_base(),rsp,in_sz);
-    __asm__ volatile(
-        "mov %%rbp, %0\n"
-        "nop\n"
-        "nop\n"
-        :"=r" (rsp)
-    );
-    // print_stack(*in,in_sz);
-     for(size_t i=0; i<in_sz; i++){
-        uint64_t input = *in[i];
-        fprintf(stdout,"%zu\n",i);
+    rsp = 0x007ffff69a5760;
+    // fprintf(stdout,"stack_base : %016p\nrsp : %016p\nsz : %016p\n",rbp,rsp,in_sz);
+    uint64_t stuff;
+    fprintf(stderr,"stack_base : %016p rsp : %016p sz : %016p\n",&stuff,(&stuff) + 1, (&stuff)+8);
+
+    for(int i=0; i<in_sz/8; i++){
+        memcpy(&stuff,&in[i*8],8);
+        // print_stack(&stuff,8);
         __asm__ volatile(
-            "nop\n"
-            "nop\n"
-            "mov %0,  -0x10(%%rbp)\n"
-            "nop\n"
-            "nop\n"
-            :
-            :"r" (input)
-            :
+            "mov %0, (%1)\n"
+            ::"r" (stuff), "r" (rsp):
         );
+        rsp+=0x8;
     }
 }

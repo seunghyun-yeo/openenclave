@@ -10,7 +10,7 @@ enclave {
                                 int b,
                                 int* result);
         public void dump([out] char** stack, size_t* sz);
-        public void restore(uint8_t** stack, size_t sz);
+        public void restore([in, size = sz]char* stack, size_t sz);
     };
     untrusted {
         void host_add();

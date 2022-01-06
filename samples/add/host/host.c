@@ -7,7 +7,7 @@ void host_add()
 {
     fprintf(stdout, "Enclave called into host to print: add!\n");
 }
-void print_stack(char *stack, size_t sz){
+void print_stack(char* stack, size_t sz){
     for(int i=0; i<sz/8; i++){
         for(int j=7; j>=0 ; j--)
             fprintf(stdout, "%02x", (uint8_t)stack[i*8+j]);
@@ -53,16 +53,16 @@ int main(int argc, const char* argv[])
     int b=2;
     int result_u=0;
     result = enclave_add(enclave,&a,&b,&result_u);
-    fprintf(stdout,"result is : %d\n",result_u);
+    // fprintf(stdout,"result is : %d\n",result_u);
     result=enclave_add2(enclave,a,b,&result_u);
-    fprintf(stdout,"result is : %d\n",result_u);
+    // fprintf(stdout,"result is : %d\n",result_u);
     char* stack;
     size_t sz=0;
     result=dump(enclave,&stack,&sz);
     
-    // if(sz!=0) print_stack(stack,sz);
+    if(sz!=0) print_stack(stack,sz);
     
-    result=restore(enclave,&stack,sz);
+    result=restore(enclave,stack,sz);
     if (result != OE_OK)
     {
         fprintf(
