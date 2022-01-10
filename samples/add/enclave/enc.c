@@ -9,6 +9,8 @@
    Disalbe ASLR(Address Space layout randomization)
    by setting /proc/sys/kernel/randomizae_va_sapce as 0 (origin was 2)
 */
+__oe_get_heap_base()
+__oe_get_heap_size()
 
 uint64_t get_stack_base(){
     oe_sgx_td_t* td = oe_sgx_get_td();

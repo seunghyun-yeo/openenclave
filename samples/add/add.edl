@@ -1,7 +1,7 @@
 enclave {
     from "openenclave/edl/syscall.edl" import *;
     from "platform.edl" import *;
-
+    include "../mig.h"
     trusted {
         public void enclave_add([in, size = 4] int* a,
                                 [in, size = 4] int* b,
@@ -9,8 +9,8 @@ enclave {
         public void enclave_add2(int a,
                                 int b,
                                 int* result);
-        public void dump([out] char** stack, size_t* sz);
-        public void restore([in, size = sz]char* stack, size_t sz);
+        public void dump(mem_layout* mem);
+        public void restore(mem_layout mem);
     };
     untrusted {
         void host_add();

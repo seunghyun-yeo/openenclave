@@ -6,10 +6,11 @@ add_custom_command(
      --search-path ${OE_INCLUDEDIR} --search-path
      ${OE_INCLUDEDIR}/openenclave/edl/sgx)
 
-add_executable(add_host host.c
+add_executable(add_host host.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/add_u.c)
 
 target_include_directories(
-    add_host PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    add_host PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+                     ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(add_host openenclave::oehost)
