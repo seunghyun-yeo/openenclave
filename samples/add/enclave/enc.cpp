@@ -43,12 +43,18 @@ void enclave_add2(int a, int b, int* result_u)
 }
 void dump(mem_layout* mem)
 {
+    uint64_t return_addr=0;
     mem->heap_sz = __oe_get_heap_size();
     mem->heap_contents = (void*)oe_host_malloc(mem->heap_sz);
     memcpy(mem->heap_contents, __oe_get_heap_base(), mem->heap_sz);
 
+    __asm__ volatile("nop\n nop\n nop\n");
     __asm__ volatile("mov %%rbp, %0\n" : "=r"(rsp)::);
+    __asm__ volatile("mov %%ss:8(%%rbp), %0\n" : "=r"(return_addr)::);
+    __asm__ volatile("nop\n nop\n nop\n");
+    fprintf(stdout,"   rbp %p\nreturn %p\n",(long)rsp,(long)return_addr);
     mem->stack_sz = get_stack_base() - rsp;
+    // mem->stack_sz = 0 ;
     mem->stack_contents = (void*)oe_host_malloc(mem->stack_sz);
     memcpy(mem->stack_contents, (void*)rsp, mem->stack_sz);
 }
@@ -69,8 +75,10 @@ void __restore_stack(mem_layout mem)
 }
 void __restore_heap(mem_layout mem)
 {
+    uint64_t return_addr=0;
+    __asm__ volatile("mov %%ss:8(%%rbp), %0\n" : "=r"(return_addr)::);
+        fprintf(stdout,"   rbp %p\nreturn %x\n",rsp,return_addr);
     uint64_t end = (uint64_t)__oe_get_heap_base();
-    fprintf(stdout, "%p\n", end);
     memcpy((void*)__oe_get_heap_base(), mem.heap_contents, mem.heap_sz);
 }
 void __restore_regs(void)

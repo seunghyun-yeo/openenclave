@@ -73,8 +73,8 @@ int main(int argc, const char* argv[])
     // cout << mem.stack_sz << endl;
 
 
-    // if (mem.stack_sz != 0)
-    //     print_stack(mem.stack_contents,mem.stack_sz);
+    if (mem.stack_sz != 0)
+        print_stack(mem.stack_contents,mem.stack_sz);
     // if (mem.heap_sz != 0)
     //     print_stack(mem.heap_contents,mem.heap_sz);
 
