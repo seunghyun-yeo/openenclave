@@ -17,4 +17,4 @@ target_include_directories(enclave PUBLIC ${headers})
 
 target_link_libraries(
     enclave openenclave::oeenclave openenclave::oecrypto${OE_CRYPTO_LIB}
-    openenclave::oelibc openenclave::oehostsock)
+    openenclave::oelibc openenclave::oehostsock openenclave::oelibcxx)

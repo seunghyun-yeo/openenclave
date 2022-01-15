@@ -1,18 +1,24 @@
-#include <openenclave/enclave.h>
 #include <add_t.h>
+#include <openenclave/enclave.h>
 // system
-#include <sys/socket.h>
 #include <arpa/inet.h>
-// libcxx
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+// libc
 #include <cstdio>
-#include <cstring>
+// libcxx
+#include <map>
+#include <string>
 // custom
 #include <functions.h>
 
-#include <netinet/in.h>
-#include <unistd.h>
 
-using namespace std;
+// using namespace std;
+std::map<std::string, std::string> m = {
+    {"dump", "dump done"},
+    {"restore", "restore done"},
+    {"exit", "bye bye"}};
 
 void enclave_add(int* a, int* b, int* result_u)
 {
@@ -25,6 +31,7 @@ void enclave_add2(int a, int b, int* result_u)
 {
     *result_u = a + b;
 }
+
 void mig_svr_boot()
 {
     oe_load_module_host_socket_interface();
@@ -49,6 +56,7 @@ void mig_svr_boot()
     {
         fprintf(stdout, "listen error\n");
     }
+    fprintf(stdout, "server is in ready state\n");
     while (1)
     {
         close(client_socket);
@@ -57,6 +65,25 @@ void mig_svr_boot()
         if (client_socket < 0)
         {
             fprintf(stdout, "accept error\n");
+        }
+        char buffer[100];
+        int bytes_read = 0;
+        memset(buffer, 0, sizeof(buffer));
+        bytes_read = read(client_socket, buffer, sizeof(buffer));
+        std::string input(buffer, bytes_read), response;
+        if (m.find(input) != m.end())
+        {
+            response = m[input];
+        }
+        else
+        {
+            response = "list of command : dump, restore, exit";
+        }
+        send(client_socket, response.c_str(), response.size(), 0);
+        if (input == "exit")
+        {
+            close(client_socket);
+            break;
         }
     }
 }
