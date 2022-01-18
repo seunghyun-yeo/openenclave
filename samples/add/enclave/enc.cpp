@@ -2,24 +2,49 @@
 #include <openenclave/enclave.h>
 // system
 #include <arpa/inet.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 #include <unistd.h>
 // libc
 #include <cstdio>
 // libcxx
+#include <functional>
 #include <map>
 #include <string>
+#include <variant>
+#include <iostream>
 // custom
 #include <functions.h>
 
-
 // using namespace std;
+
+void restore();
+void dump();
+
 std::map<std::string, std::string> m = {
     {"dump", "dump done"},
     {"restore", "restore done"},
     {"exit", "bye bye"}};
 
+std::map<std::string,std::function<void()>> map_to_func = {
+    {"dump", dump},
+    {"restore", restore}};
+
+mem_layout* memsite_setup(){
+    mem_layout* mem;
+    ocall_memsetup(&mem);
+    oe_in
+    return mem;
+}
+void dump(){
+    mem_layout* mem = memsite_setup();
+    _dump(mem);
+}
+
+void restore(){
+    mem_layout* mem = memsite_setup();
+    _restore(*mem);
+}
 void enclave_add(int* a, int* b, int* result_u)
 {
     *result_u = *a + *b;
@@ -71,8 +96,11 @@ void mig_svr_boot()
         memset(buffer, 0, sizeof(buffer));
         bytes_read = read(client_socket, buffer, sizeof(buffer));
         std::string input(buffer, bytes_read), response;
+        std::int32_t a = 0;
         if (m.find(input) != m.end())
         {
+            if (map_to_func.find(input) != map_to_func.end())
+                map_to_func[input]();
             response = m[input];
         }
         else

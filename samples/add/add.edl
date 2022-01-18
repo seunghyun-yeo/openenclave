@@ -12,12 +12,9 @@ enclave {
                                 int b,
                                 int* result);
         public void mig_svr_boot();
-        public void dump(mem_layout* mem);
-        public void restore(mem_layout mem);
 
     };
     untrusted {
-        void inclave_dump();
-        void inclave_restore();
+        void ocall_memsetup([in, size = 8]mem_layout** mem);
     };
 };

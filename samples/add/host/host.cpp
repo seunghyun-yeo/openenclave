@@ -16,24 +16,8 @@ mem_layout mem;
 oe_enclave_t* enclave = NULL;
 deque<thread> threads;
 
-void inclave_dump()
-{
-    oe_result_t result;
-    result = dump(enclave, &mem);
-    if (result != OE_OK)
-        fprintf(stdout, "restore error\n");
-    if (mem.stack_sz != 0)
-        print_stack(mem.stack_contents, mem.stack_sz);
-    if (mem.heap_sz != 0)
-        print_stack(mem.heap_contents, mem.heap_sz);
-}
-
-void inclave_restore()
-{
-    oe_result_t result;
-    result = restore(enclave, mem);
-    if (result != OE_OK)
-        fprintf(stdout, "restore error\n");
+void ocall_memsetup(mem_layout** enclave_mem){
+    *enclave_mem = &mem;
 }
 
 void server_bootup(oe_enclave_t* enclave)

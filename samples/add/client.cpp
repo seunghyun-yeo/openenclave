@@ -6,7 +6,7 @@
 #include <vector>
 #define PORT 9999
 
-std::vector v_messages = {"dump", "restore", "else", "exit"};
+std::vector<std::string> v_messages = {"dump", "restore", "else", "exit"};
 
 int main(int argc, char const* argv[])
 {
@@ -24,8 +24,10 @@ int main(int argc, char const* argv[])
         return -1;
     }
 
-    for (std::string s : v_messages)
+    for (;;)
     {
+        std::string s;
+        std::cin >> s;
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             std::cout << "\n Socket creation error \n";
@@ -42,6 +44,8 @@ int main(int argc, char const* argv[])
         valread = read(sock, buffer, 1024);
         std::cout << "message received : " << std::string(buffer, valread)
                   << std::endl;
+        close(sock);
+        if(s=="exit") break;
     }
     return 0;
 }

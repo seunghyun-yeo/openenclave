@@ -36,7 +36,7 @@ void print_stack(uint8_t* stack, size_t sz)
         fprintf(stdout, "\n");
     }
 }
-void dump(mem_layout* mem)
+void _dump(mem_layout* mem)
 {
     uint64_t return_addr = 0;
     mem->heap_sz = __oe_get_heap_size();
@@ -51,6 +51,7 @@ void dump(mem_layout* mem)
     mem->stack_sz = get_stack_base() - rsp;
     // mem->stack_sz = 0 ;
     mem->stack_contents = (void*)oe_host_malloc(mem->stack_sz);
+    std::cout << "host malloc done" << std::endl;
     memcpy(mem->stack_contents, (void*)rsp, mem->stack_sz);
 }
 
@@ -71,7 +72,7 @@ void __restore_regs(void)
 {
 }
 
-void restore(mem_layout mem)
+void _restore(mem_layout mem)
 {
     __restore_heap(mem);
     __restore_stack(mem);
