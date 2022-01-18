@@ -43,6 +43,10 @@ void _dump(mem_layout* mem)
     mem->heap_contents = (void*)oe_host_malloc(mem->heap_sz);
     memcpy(mem->heap_contents, __oe_get_heap_base(), mem->heap_sz);
 
+    oe_sgx_td_t* td = oe_sgx_get_td();
+    std::cout<<"stack_base addr" << td->base.__stack_base_addr<<std::endl<<"stack_limit_addr "<< td->base.__stack_limit_addr <<std::endl;
+
+
     __asm__ volatile("nop\n nop\n nop\n");
     __asm__ volatile("mov %%rbp, %0\n" : "=r"(rsp)::);
     __asm__ volatile("mov %%ss:8(%%rbp), %0\n" : "=r"(return_addr)::);

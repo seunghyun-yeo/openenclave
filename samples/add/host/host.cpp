@@ -23,6 +23,7 @@ void ocall_memsetup(mem_layout** enclave_mem){
 void server_bootup(oe_enclave_t* enclave)
 {
     oe_result_t result;
+    set_mem_pointer(enclave,&mem);
     result = mig_svr_boot(enclave);
 }
 

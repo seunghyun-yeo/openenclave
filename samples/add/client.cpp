@@ -4,12 +4,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define PORT 9999
+#include <cstring>
+
 
 std::vector<std::string> v_messages = {"dump", "restore", "else", "exit"};
 
 int main(int argc, char const* argv[])
 {
+    int PORT = atoi(argv[1]);
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
     char buffer[1024] = {0};

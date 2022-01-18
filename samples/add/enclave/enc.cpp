@@ -16,10 +16,11 @@
 // custom
 #include <functions.h>
 
-// using namespace std;
+#include <openenclave/enclave.h>
 
 void restore();
 void dump();
+mem_layout* mem;
 
 std::map<std::string, std::string> m = {
     {"dump", "dump done"},
@@ -30,19 +31,16 @@ std::map<std::string,std::function<void()>> map_to_func = {
     {"dump", dump},
     {"restore", restore}};
 
-mem_layout* memsite_setup(){
-    mem_layout* mem;
-    ocall_memsetup(&mem);
-    oe_in
-    return mem;
+
+void set_mem_pointer(mem_layout* input_from_host){
+    mem=input_from_host;
 }
 void dump(){
-    mem_layout* mem = memsite_setup();
     _dump(mem);
+    std::cout<< "dump\n";
 }
 
 void restore(){
-    mem_layout* mem = memsite_setup();
     _restore(*mem);
 }
 void enclave_add(int* a, int* b, int* result_u)
@@ -61,6 +59,7 @@ void mig_svr_boot()
 {
     oe_load_module_host_socket_interface();
     struct sockaddr_in addr, in_addr;
+    uint32_t addr_len = sizeof(addr);
     uint32_t in_addr_len = sizeof(in_addr);
     int server_socket, client_socket;
 
@@ -72,14 +71,17 @@ void mig_svr_boot()
     if (server_socket < 0)
     {
         fprintf(stdout, "socket creation failed\n");
+        return;
     }
-    if (bind(server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+    if (bind(server_socket, (struct sockaddr*)&addr, addr_len) < 0)
     {
         fprintf(stdout, "port binding failed\n");
+        return;
     }
     if (listen(server_socket, 1) < 0)
     {
         fprintf(stdout, "listen error\n");
+        return;
     }
     fprintf(stdout, "server is in ready state\n");
     while (1)
@@ -101,6 +103,7 @@ void mig_svr_boot()
         {
             if (map_to_func.find(input) != map_to_func.end())
                 map_to_func[input]();
+            std::cout<< input <<" processing\n";
             response = m[input];
         }
         else

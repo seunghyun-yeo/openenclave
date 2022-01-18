@@ -24,7 +24,7 @@ project("Add Sample" LANGUAGES C CXX)
 
 find_package(OpenEnclave CONFIG REQUIRED)
 
-set(CMAKE_CXX STANDARD 11)
+set(CMAKE_CXX STANDARD 17)
 set(OE_CRYPTO_LIB 
      mbedtls
      CACHE STRING "Crypto Lib used by enclaves.")
